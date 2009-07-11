@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# Build the base system.
+# Requires: debootstrap
+
+. ./config
+
+if [ "`whoami`" != "root" ]; then
+    echo "Sudo-ing ourselves..."
+    exec sudo $0 $@
+fi
+
+echo "Hooray, we're root!"
+
+if [ ! -r $RELEASE.cache.tar ]; then
+    echo "We need to build a cache. Please stand by..."
+    ./cache.sh
+fi
+
+#sudo debootstrap --foreign --arch=i386 --unpack-tarball=`pwd`/$RELEASE.cache.tar $RELEASE staging_dir/
+sudo debootstrap --foreign --arch=i386 $RELEASE staging_dir
+
+# cocaine for x86_64 build host machines
+if [ "`uname -m`" == "x86_64" ]; then
+    LINUX32=linux32
+else
+    LINUX32=
+fi
+
+sudo $LINUX32 chroot staging_dir /debootstrap/debootstrap --second-stage
+# copy any extra files we might have
+sudo cp -R files_to_copy/* staging_dir/
+sudo cp finish_setup.sh staging_dir/
+sudo $LINUX32 chroot staging_dir /finish_setup.sh
+sudo rm staging_dir/finish_setup.sh

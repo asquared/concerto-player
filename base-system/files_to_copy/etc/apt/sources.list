@@ -1,0 +1,18 @@
+deb http://us.archive.ubuntu.com/ubuntu/ jaunty main restricted
+deb-src http://us.archive.ubuntu.com/ubuntu/ jaunty main restricted
+deb http://us.archive.ubuntu.com/ubuntu/ jaunty-updates main restricted
+deb-src http://us.archive.ubuntu.com/ubuntu/ jaunty-updates main restricted
+deb http://us.archive.ubuntu.com/ubuntu/ jaunty universe
+deb-src http://us.archive.ubuntu.com/ubuntu/ jaunty universe
+deb http://us.archive.ubuntu.com/ubuntu/ jaunty-updates universe
+deb-src http://us.archive.ubuntu.com/ubuntu/ jaunty-updates universe
+deb http://us.archive.ubuntu.com/ubuntu/ jaunty multiverse
+deb-src http://us.archive.ubuntu.com/ubuntu/ jaunty multiverse
+deb http://us.archive.ubuntu.com/ubuntu/ jaunty-updates multiverse
+deb-src http://us.archive.ubuntu.com/ubuntu/ jaunty-updates multiverse
+deb http://security.ubuntu.com/ubuntu jaunty-security main restricted
+deb-src http://security.ubuntu.com/ubuntu jaunty-security main restricted
+deb http://security.ubuntu.com/ubuntu jaunty-security universe
+deb-src http://security.ubuntu.com/ubuntu jaunty-security universe
+deb http://security.ubuntu.com/ubuntu jaunty-security multiverse
+deb-src http://security.ubuntu.com/ubuntu jaunty-security multiverse
