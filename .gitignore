@@ -1,3 +1,6 @@
 staging_dir
 *.cache.tar
 *.ignore
+temp
+*.squashfs
+*.plugin
