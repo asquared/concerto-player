@@ -1,0 +1,34 @@
+9
+
+dir
+522
+svn://senatedev.union.rpi.edu/svn-senate/concerto-firmware/trunk/patches/030-blank-icons
+svn://senatedev.union.rpi.edu/svn-senate
+
+
+
+2008-10-30T02:25:49.592104Z
+431
+andrew
+
+
+svn:special svn:externals svn:needs-lock
+
+
+
+
+
+
+
+
+
+
+
+b8039cdc-2e22-40b3-a58f-4e619c677740
+
+usr
+dir
+
+etc
+dir
+
