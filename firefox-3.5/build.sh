@@ -1,7 +1,6 @@
 #!/bin/bash
 
-# Build the base system.
-# Requires: debootstrap
+# Build Firefox plugin (firefox.plugin) and patch with the necessary extensions
 
 . ./config
 mkdir temp
