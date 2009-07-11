@@ -5,7 +5,7 @@ use warnings;
 
 # calculate a package's dependencies that aren't already in the base system
 
-my $pkg = $ARGV[0];
+my $pkg_str = join ' ', @ARGV;
 
 my $output = `apt-get --recon install $pkg`;
 
