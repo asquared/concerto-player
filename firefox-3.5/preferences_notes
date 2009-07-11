@@ -1,0 +1,7 @@
+first crack:
+
+browser.tabs.autoHide = true
+app.update.auto = false
+privacy.popups.firstTime = false?
+
+- see the patch

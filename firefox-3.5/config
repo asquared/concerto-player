@@ -1,0 +1,3 @@
+# where to get the release
+RELEASE_URL="http://releases.mozilla.org/pub/mozilla.org/firefox/releases/3.5/linux-i686/en-US/firefox-3.5.tar.bz2"
+

@@ -1,0 +1,6 @@
+In order to install the extension globally, I used the -install-global-extension flag, like:
+
+/opt/firefox/firefox -install-global-extension full-fullscreen-whatever.xpi
+
+then tar'd up the extensions/{bf....} folder that created.
+
