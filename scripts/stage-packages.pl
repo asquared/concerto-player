@@ -6,9 +6,9 @@ use warnings;
 # run from a plugin directory, this will stage a debian package and all its 
 # dependencies into staging_dir
 
-my $pkg = $ARGV[0];
+my $pkg_list = join ' ', @ARGV;
 
-my @urls = split /\n/, `../base-system/staging_dir/etc/depurls.pl $pkg`;
+my @urls = split /\n/, `sudo chroot ../base-system/staging_dir /etc/depurls.pl $pkg_list`;
 
 for my $url (@urls) {
     if (system("wget -O temp/install.deb $url")) {
