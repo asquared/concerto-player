@@ -17,8 +17,8 @@ if [ ! -r $RELEASE.cache.tar ]; then
     ./cache.sh
 fi
 
-#sudo debootstrap --foreign --arch=i386 --unpack-tarball=`pwd`/$RELEASE.cache.tar $RELEASE staging_dir/
-sudo debootstrap --foreign --arch=i386 $RELEASE staging_dir
+#debootstrap --foreign --arch=i386 --unpack-tarball=`pwd`/$RELEASE.cache.tar $RELEASE staging_dir/
+debootstrap --foreign --arch=i386 $RELEASE staging_dir
 
 # cocaine for x86_64 build host machines
 if [ "`uname -m`" == "x86_64" ]; then
@@ -27,9 +27,10 @@ else
     LINUX32=
 fi
 
-sudo $LINUX32 chroot staging_dir /debootstrap/debootstrap --second-stage
+$LINUX32 chroot staging_dir /debootstrap/debootstrap --second-stage
 # copy any extra files we might have
-sudo cp -R files_to_copy/* staging_dir/
-sudo cp finish_setup.sh staging_dir/
-sudo $LINUX32 chroot staging_dir /finish_setup.sh
-sudo rm staging_dir/finish_setup.sh
+cp -R files_to_copy/* staging_dir/
+cp finish_setup.sh staging_dir/
+$LINUX32 chroot staging_dir /finish_setup.sh
+rm staging_dir/finish_setup.sh
+
