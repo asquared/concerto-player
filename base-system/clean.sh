@@ -6,3 +6,4 @@ if [ "`whoami`" != "root" ]; then
 fi
 
 rm -rf staging_dir
+rm concerto.squashfs
