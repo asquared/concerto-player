@@ -1,0 +1,5 @@
+#!/bin/sh
+ZONE="America/New_York"
+cp /etc/zoneinfo/$ZONE /etc/localtime
+ntpdate -b pool.ntp.org
+

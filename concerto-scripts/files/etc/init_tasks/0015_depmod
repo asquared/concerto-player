@@ -1,0 +1,11 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+if (system("depmod") == 0) {
+    exit 0;
+} else {
+    print "warning: failed to compute module dependencies\n";
+    exit 1;
+}

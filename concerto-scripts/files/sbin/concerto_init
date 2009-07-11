@@ -1,0 +1,184 @@
+#!/usr/bin/env perl
+
+# Concerto Second Stage Boot Script
+
+use strict;
+use warnings;
+
+use File::Basename;
+
+my $log_dest = "http://senatedev.rpisenate.com/failure.php";
+
+# this will be coming in from the kernel command line
+if (defined $ENV{"LOG_DEST"}) {
+    $log_dest = $ENV{"LOG_DEST"};
+}
+
+sub spawn_task {
+    my $file = shift;
+    my $pid = fork;
+
+    if ($pid == -1) {
+        # fail!
+        print "fork failed when spawning task $file\n";
+    } elsif ($pid) {
+        # parent process -- don't do anything
+    } else {
+        # child process
+
+        # redirect the stdout/stderr
+        close(STDOUT);
+        close(STDERR);
+        open STDOUT, ">", "/var/log/" . basename($file) . ".out";
+        open STDERR, ">", "/var/log/" . basename($file) . ".err";
+        
+        while (1) {
+            # run the process
+            system($file);
+            # print an error if it dies
+            print STDERR "perl init system: process died! respawn in 5...";
+            # delay if there's an error
+            sleep(5);
+        }
+    }
+}
+
+sub run_init_task {
+    my $file = shift;
+    my $pid = fork;
+
+    if ($pid == -1) {
+        # fail!
+        print "fork failed when spawning task $file\n";
+    } elsif ($pid) {
+        # wait for it to return
+        waitpid $pid, 0;
+        return $?;
+    } else {
+        # child process
+
+        # redirect the stdout/stderr to a file
+        close(STDOUT);
+        close(STDERR);
+        open STDOUT, ">", "/var/log/init_process.out";
+        open STDERR, ">&STDOUT";
+
+        exec $file;
+    }
+}
+
+sub start_system_tasks {
+    my @files = sort glob "/etc/tasks/*";
+
+    print "starting system tasks... ";
+    for my $file (@files) {
+        print "$file ";
+        if (-x $file) {
+            print "(ok) ";
+            spawn_task($file);
+        } else {
+            print "(skipped) ";
+        }
+    }
+    print "\n";
+}
+
+sub report_init_task_failure { 
+    # demand load these modules in the event of failure
+    # this should really go into a Concerto::LogFacility or something similar
+    use HTTP::Request;
+    use LWP::UserAgent;
+
+    open my $output_file, "<", "/var/log/init_process.out" or do {
+        print "Failed to open file!\n";
+        return;
+    };
+
+    # slurp file
+    my $text = '';
+    while (<$output_file>) {
+        $text .= $_;
+    }
+
+    # post to HTTP URL
+    my $ua = LWP::UserAgent->new( );
+    $ua->agent('ConcertoFirmware/0.3');
+
+    my $req = HTTP::Request->new(POST => $log_dest);
+    $req->content_type('text/plain');
+    $req->content($text);
+
+    my $result = $ua->request($req);
+
+    if ($result->is_success) {
+        print "uploaded log data successfully\n";
+    } else {
+        print "failed to upload log data: " . $result->status_line . "\n";
+    }
+
+}
+
+sub run_init_tasks {
+    my @files = sort glob "/etc/init_tasks/*";
+    print "running system initialization tasks... ";
+    for my $file (@files) {
+        print "$file ";
+        if (-x $file) {
+            my $result = system($file);
+            if ($result == 0) {
+                print "(ok) ";
+            } elsif ($result == 1) {
+                print "(failure) ";
+                report_init_task_failure( );
+            } elsif ($result == 2) {
+                print "(failure)\n";
+                print "Fatal error reported by $file.\n";
+                print "Attempting to log error to server...\n";
+                report_init_task_failure( );
+                print "Rebooting in one minute...\n";
+                sleep(60);
+                system("/sbin/reboot -f");
+            }
+        } else {
+            print "(skipped) ";
+        }
+    }
+    print "\n";
+}
+
+# Set up necessary environment variables
+sub set_up_environment {
+    $ENV{"LC_ALL"} = "C";
+    $ENV{"PATH"} = "/bin:/usr/bin:/sbin:/usr/sbin";
+    $ENV{"HOME"} = "/root";
+}
+
+print "Concerto Player\n";
+print "Second Stage System Bootstrap\n";
+
+
+set_up_environment( );
+# here is where we run the perl scripts in /etc/init_tasks
+run_init_tasks( );
+# and then start the supervisory processes in /etc/tasks
+start_system_tasks( );
+
+# fork a subprocess for the system maintenance shell
+my $pid = fork( );
+
+if ($pid == -1) {
+    die "Failed to fork subprocess for supervisory shell!";
+} elsif ($pid) {
+    # parent process - at this point we simply wait( ) for any children
+    # this way we reap any zombies created by services etc...
+    while (1) {
+        wait( );
+    }
+} else {
+    # child process - constantly spawn getty on tty9
+    while (1) {
+        system("/sbin/getty 38400 tty9");
+        sleep(2);
+    }
+}
+

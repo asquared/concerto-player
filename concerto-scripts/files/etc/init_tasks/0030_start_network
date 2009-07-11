@@ -1,0 +1,38 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+
+my $MAX_DHCP_TRIES = 10;
+my $iface;
+my $ifconfig = `/sbin/ifconfig -a`;
+my @cards = ($ifconfig =~/^(eth\d+)/gm);
+if (scalar (@cards) > 0) {
+	$iface = $cards[0];
+	print "\nfound Ethernet at $iface...\n";
+} 
+
+# check if we actually found anything
+unless (defined $iface) {
+    print "Failed to find any network interface!";
+    exit 1;
+}
+
+# do DHCP autoconfiguration
+sleep(2);
+print "DHCP autoconfiguration via dhclient in progress...\n";
+
+# use as a crude watchdog to die (causing reboot) if too many attempts occur
+my $dhcpdog = 0;
+
+while (system("/sbin/dhclient -1 $iface")) {
+    print "no network... try again in 10 seconds\n";
+    sleep 10;
+    $dhcpdog++;
+    if ($dhcpdog > $MAX_DHCP_TRIES) {
+        print "Too many DHCP tries.\n";
+        exit 1;
+    }
+}
+
+exit 0;
+

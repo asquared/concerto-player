@@ -1,0 +1,11 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+if (system("/bin/mount -t proc proc /proc") == 0) {
+    exit 0;
+} else {
+    print "warning: failed to mount proc filesystem\n";
+    exit 1;
+}

@@ -1,0 +1,16 @@
+#!/usr/bin/env perl
+
+use strict; 
+use warnings;
+
+if (system("/bin/mount -t sysfs sysfs /sys") == 0) {
+    system("/sbin/udevd --daemon");
+    system("/sbin/udevadm trigger");
+    system("/sbin/udevadm settle");
+    exit 0;
+} else {
+    print "failed to mount sysfs and/or start udev\n";
+    exit 1;
+}
+
+
