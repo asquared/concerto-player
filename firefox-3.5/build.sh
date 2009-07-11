@@ -5,11 +5,14 @@
 . ./config
 mkdir temp
 
+
 if [ ! -r temp/release.tar.bz2 ]; then
     ( cd temp; wget -O release.tar.bz2 $RELEASE_URL )
 fi
 
 mkdir -p staging_dir/opt
+
+../scripts/stage_packages.pl libgtk2.0-0 xfwm4
 
 tar -jxvf temp/release.tar.bz2 -C staging_dir/opt
 tar -xvf fullfullscreen.tar -C staging_dir/opt/firefox/extensions
