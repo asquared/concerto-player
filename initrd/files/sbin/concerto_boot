@@ -1,0 +1,169 @@
+#!/usr/bin/perl
+#
+# RPI Digital Signage
+# System Initial Bootstrap Loader
+#
+
+use strict;
+use warnings;
+
+my @card_devs = qw|/dev/hda1 /dev/hdb1 /dev/hdc1 /dev/hdd1 /dev/sda1 /dev/sdb1 /dev/sdc1 /dev/sdd1|;
+my $init_mount = "/mnt";
+my $union_mount = "/new_root";
+my $mountpoint_dir = "/union";
+my $second_init = "/sbin/concerto_init";
+
+if (defined $ENV{"second_init"}) {
+    $second_init = $ENV{"second_init"};
+}
+
+my $filesystem = "vfat";
+
+if (defined $ENV{"cdboot"}) {
+    $filesystem = "iso9660";
+    @card_devs = qw|/dev/hda /dev/hdb /dev/hdc /dev/hdd|;
+}
+
+sub mount_card {
+    if (defined $ENV{"rootwait"}) {
+        print "waiting for root device to become available\n";
+        sleep $ENV{"rootwait"};
+    }
+
+    if (defined $ENV{"forceroot"}) {
+        @card_devs = ( $ENV{"forceroot"} );
+    }
+
+    for my $card (@card_devs) {
+        print "trying to mount $card on $init_mount...\r";
+        if (system("/bin/mount -t $filesystem -o sync,noatime $card $init_mount") == 0) {
+            print "\nsuccess!\n";
+            return 1;
+         }  
+    }
+
+    # we're probably running in a VM: try ext2 on /dev/hda as a last resort
+    if (system("/bin/mount -t ext2 -o rw /dev/hda $init_mount") == 0) {
+        print "\nmounted dodgy virtual card image from hda\n";
+        return 1;
+    }
+
+    return 0;
+}
+
+sub find_squashfs {
+    # check if the "default.squashfs" exists on the card
+    if (-r "$init_mount/default.squashfs") {
+        return "$init_mount/default.squashfs";
+    }
+
+    for my $squashfile (glob "$init_mount/*.squashfs") {
+        if (-r $squashfile) {
+            return $squashfile;
+        }
+    }
+    return undef;
+}
+
+sub find_plugins {
+    glob "$init_mount/*.plugin"
+}
+
+sub mount_squashfs {
+    my $squashfile = shift;
+    if (system("/bin/mount -t squashfs -o loop $squashfile $squash_mount") == 0) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+sub mount_tmpfs {
+    if (system("/bin/mount -t tmpfs tmpfs $tmpfs_mount") == 0) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+sub mount_unionfs {
+    # First, get a list of all the squashfs files (plugins) we need to mount
+    my @images = ( find_plugins(), find_squashfs() );
+
+    # Mount tmpfs on /union so we can create mountpoints for the union members
+    if (system("/bin/mount -t tmpfs tmpfs $mountpoint_dir")) {
+        print "Error: Failed to mount tmpfs on $mountpoint_dir\n";
+        return 1;
+    }
+
+    # The unionfs_string is used to build the arguments to be passed to unionfs
+    my $unionfs_string = "";
+    # The mount_no is used to create uniquely named mountpoints
+    my $mount_no = 0;
+
+    # Loop through the squashfs images
+    for my $squashfs (@images) {
+        # create a mount point for this plugin
+        my $mount_pt = "$mountpoint_dir/$mount_no";
+        mkdir $mount_pt;
+
+        # Mount the squashfs file on the plugin
+        if (system("/bin/mount -t squashfs -o loop $squashfs $mount_pt")) {
+            print "Warning: failed to load plugin: $squashfs\n";
+        } else {
+            # The plugin was successfully mounted. Append it to the list to be passed to unionfs.
+            $unionfs_string .= ":$mount_pt=ro";
+            $mount_no++;
+        }
+    }
+
+    # Finally, mount unionfs on /new_root
+    if (system("/bin/mount -t unionfs -o dirs=$tmpfs_mount=rw:$unionfs_string none $union_mount") == 0) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+sub do_pivot {
+    # try to jump into the real root filesystem
+    #exec "/bin/chroot $union_mount /main_bootstrap.pl" 
+    # this kludge probably won't work right... we shall hope for the best
+    chdir($union_mount);
+    system("/bin/pivot_root . initrd");
+    exec "/bin/chroot . $second_init";
+}
+
+print "Concerto Player\n";
+print "System Initial Bootstrap Loader\n";
+
+unless (mount_card( )) {
+    print "failed to mount CF card, system dead...\n";
+    system("/bin/bash");
+    die;
+}
+
+my $squashfs = find_squashfs( );
+
+unless (defined $squashfs) {
+    print "failed to locate valid squashfs system image, system dead...\n";
+    system("/bin/bash");
+    die;
+}
+
+unless (mount_tmpfs( )) {
+    print "failed to mount tmpfs on $tmpfs_mount, system dead...\n";
+    system("/bin/bash");
+    die;
+}
+
+unless (mount_unionfs( )) {
+    print "failed to mount union of $squash_mount and $tmpfs_mount on $union_mount, system dead...\n";
+    system("/bin/bash");
+    die;
+}
+
+do_pivot( );
+
+# code should never get here since we will exec /main_bootstrap.pl
+print "failed to pivot root to $squash_mount, system dead...\n";
+die;
