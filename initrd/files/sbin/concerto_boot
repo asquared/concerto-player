@@ -69,17 +69,9 @@ sub find_plugins {
     glob "$init_mount/*.plugin"
 }
 
-sub mount_squashfs {
-    my $squashfile = shift;
-    if (system("/bin/mount -t squashfs -o loop $squashfile $squash_mount") == 0) {
-        return 1;
-    } else {
-        return 0;
-    }
-}
-
 sub mount_tmpfs {
-    if (system("/bin/mount -t tmpfs tmpfs $tmpfs_mount") == 0) {
+    mkdir "$mountpoint_dir/tmpfs";
+    if (system("/bin/mount -t tmpfs tmpfs $mountpoint_dir/tmpfs") == 0) {
         return 1;
     } else {
         return 0;
@@ -118,7 +110,7 @@ sub mount_unionfs {
     }
 
     # Finally, mount unionfs on /new_root
-    if (system("/bin/mount -t unionfs -o dirs=$tmpfs_mount=rw:$unionfs_string none $union_mount") == 0) {
+    if (system("/bin/mount -t unionfs -o dirs=$mountpoint_dir/tmpfs=rw:$unionfs_string none $union_mount") == 0) {
         return 1;
     } else {
         return 0;
@@ -151,13 +143,13 @@ unless (defined $squashfs) {
 }
 
 unless (mount_tmpfs( )) {
-    print "failed to mount tmpfs on $tmpfs_mount, system dead...\n";
+    print "failed to mount tmpfs, system dead...\n";
     system("/bin/bash");
     die;
 }
 
 unless (mount_unionfs( )) {
-    print "failed to mount union of $squash_mount and $tmpfs_mount on $union_mount, system dead...\n";
+    print "failed to mount unionfs on $union_mount, system dead...\n";
     system("/bin/bash");
     die;
 }
@@ -165,5 +157,5 @@ unless (mount_unionfs( )) {
 do_pivot( );
 
 # code should never get here since we will exec /main_bootstrap.pl
-print "failed to pivot root to $squash_mount, system dead...\n";
+print "failed to pivot root to unionfs, system dead...\n";
 die;
