@@ -70,10 +70,12 @@ sub find_plugins {
 }
 
 sub mount_tmpfs {
+    print "creating tmpfs on $mountpoint_dir/tmpfs\n";
     mkdir "$mountpoint_dir/tmpfs";
     if (system("/bin/mount -t tmpfs tmpfs $mountpoint_dir/tmpfs") == 0) {
         return 1;
     } else {
+        print "tmpfs mounted??\n";
         return 0;
     }
 }
@@ -86,6 +88,13 @@ sub mount_unionfs {
     if (system("/bin/mount -t tmpfs tmpfs $mountpoint_dir")) {
         print "Error: Failed to mount tmpfs on $mountpoint_dir\n";
         return 1;
+    }
+
+    # Create a tmpfs for locally created files
+    unless (mount_tmpfs( )) {
+        print "failed to mount tmpfs, system dead...\n";
+        system("/bin/bash");
+        die;
     }
 
     # The unionfs_string is used to build the arguments to be passed to unionfs
@@ -110,7 +119,8 @@ sub mount_unionfs {
     }
 
     # Finally, mount unionfs on /new_root
-    if (system("/bin/mount -t unionfs -o dirs=$mountpoint_dir/tmpfs=rw:$unionfs_string none $union_mount") == 0) {
+    print "/bin/mount -t unionfs -o dirs=$mountpoint_dir/tmpfs=rw$unionfs_string none $union_mount\n";
+    if (system("/bin/mount -t unionfs -o dirs=$mountpoint_dir/tmpfs=rw$unionfs_string none $union_mount") == 0) {
         return 1;
     } else {
         return 0;
@@ -122,6 +132,9 @@ sub do_pivot {
     # this kludge probably won't work right... we shall hope for the best
     chdir($union_mount);
     system("/bin/pivot_root . initrd");
+    # this should work
+    exec "/usr/sbin/chroot . $second_init";
+    # unless the system has chroot somewhere else
     exec "/bin/chroot . $second_init";
 }
 
@@ -142,11 +155,6 @@ unless (defined $squashfs) {
     die;
 }
 
-unless (mount_tmpfs( )) {
-    print "failed to mount tmpfs, system dead...\n";
-    system("/bin/bash");
-    die;
-}
 
 unless (mount_unionfs( )) {
     print "failed to mount unionfs on $union_mount, system dead...\n";
