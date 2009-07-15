@@ -33,7 +33,7 @@ sub get_commands {
 # load the RSA key from file
 sub load_key {
     local $/ = undef;
-    open my $keyfile, "<", "ds-public.key"
+    open my $keyfile, "<", "/initrd/mnt/public.key"
         or die("failed to open public key for signature verification");
 
     my $keystr = <$keyfile>;
