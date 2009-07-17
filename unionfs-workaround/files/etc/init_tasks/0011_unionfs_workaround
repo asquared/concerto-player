@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# work around the fact that unionfs is on cocaine
+mount -t tmpfs tmpfs /tmp
+mount -t tmpfs tmpfs /var/tmp
+mount -t tmpfs tmpfs /root
+
