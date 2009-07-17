@@ -1,3 +1,3 @@
 #!/bin/bash
 
-mksquashfs files cursor-theme.plugin -all-root
+mksquashfs files cursor-theme.plugin -all-root -noappend
