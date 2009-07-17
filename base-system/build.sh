@@ -34,4 +34,4 @@ cp finish_setup.sh staging_dir/
 $LINUX32 chroot staging_dir /finish_setup.sh
 rm staging_dir/finish_setup.sh
 
-mksquashfs staging_dir concerto.squashfs -all-root
+mksquashfs staging_dir concerto.squashfs -all-root -noappend
