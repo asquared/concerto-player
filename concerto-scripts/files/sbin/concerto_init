@@ -13,7 +13,14 @@ my $log_dest = "http://senatedev.rpisenate.com/failure.php";
 do '/etc/defaults.pl';
 
 # attempt to load configuration file from CF card, if present
-do '/initrd/mnt/config.pl';
+if (-r '/initrd/mnt/config.pl') {
+    unless (do '/initrd/mnt/config.pl') {
+        print "WARNING WARNING WARNING!\n";
+        print "Your config.pl file failed to load!\n";
+        print "You probably have an error in Perl syntax.\n";
+        print "Perl Error: $!\n";
+    }
+}
 
 # this will be coming in from the kernel command line
 if (defined $ENV{"LOG_DEST"}) {
