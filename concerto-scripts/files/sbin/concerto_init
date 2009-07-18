@@ -97,36 +97,38 @@ sub start_system_tasks {
 }
 
 sub report_init_task_failure { 
-    # demand load these modules in the event of failure
-    # this should really go into a Concerto::LogFacility or something similar
-    use HTTP::Request;
-    use LWP::UserAgent;
+    eval {
+        # demand load these modules in the event of failure
+        # this should really go into a Concerto::LogFacility or something similar
+        use HTTP::Request;
+        use LWP::UserAgent;
 
-    open my $output_file, "<", "/var/log/init_process.out" or do {
-        print "Failed to open file!\n";
-        return;
-    };
+        open my $output_file, "<", "/var/log/init_process.out" or do {
+            print "Failed to open file!\n";
+            return;
+        };
 
-    # slurp file
-    my $text = '';
-    while (<$output_file>) {
-        $text .= $_;
-    }
+        # slurp file
+        my $text = '';
+        while (<$output_file>) {
+            $text .= $_;
+        }
 
-    # post to HTTP URL
-    my $ua = LWP::UserAgent->new( );
-    $ua->agent('ConcertoFirmware/0.3');
+        # post to HTTP URL
+        my $ua = LWP::UserAgent->new( );
+        $ua->agent('ConcertoFirmware/0.3');
 
-    my $req = HTTP::Request->new(POST => $log_dest);
-    $req->content_type('text/plain');
-    $req->content($text);
+        my $req = HTTP::Request->new(POST => $log_dest);
+        $req->content_type('text/plain');
+        $req->content($text);
 
-    my $result = $ua->request($req);
+        my $result = $ua->request($req);
 
-    if ($result->is_success) {
-        print "uploaded log data successfully\n";
-    } else {
-        print "failed to upload log data: " . $result->status_line . "\n";
+        if ($result->is_success) {
+            print "uploaded log data successfully\n";
+        } else {
+            print "failed to upload log data: " . $result->status_line . "\n";
+        }
     }
 
 }
