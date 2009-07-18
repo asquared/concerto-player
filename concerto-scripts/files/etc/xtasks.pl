@@ -5,6 +5,14 @@ use warnings;
 
 use Concerto::MACFinder qw/find_mac/;
 
+my $base;
+if (defined $ENV{'CONCERTO_INSTALL'}) {
+    $base = $env{'CONCERTO_INSTALL'};
+} else {
+    $base = 'http://concerto.rpi.edu/';
+}
+
+
 # start X server and firefox
 
 my $MAC = find_mac("eth0");
@@ -23,11 +31,9 @@ sleep(3);
 my $dpyinfo = `xdpyinfo`;
 
 if ($dpyinfo =~ /dimensions:\s+(\d+)x(\d+)/) {
-    system("/opt/firefox/firefox", "http://signage.union.rpi.edu/?mac=$MAC&w=$1&h=$2");
+    system("/opt/firefox/firefox", "$base?mac=$MAC&w=$1&h=$2");
 } else {
     # start firefox...
-    system("/opt/firefox/firefox", "http://signage.union.rpi.edu/?mac=$MAC");
+    system("/opt/firefox/firefox", "$base?mac=$MAC");
 }
-
-
 
