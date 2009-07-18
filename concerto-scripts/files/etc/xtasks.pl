@@ -7,7 +7,7 @@ use Concerto::MACFinder qw/find_mac/;
 
 my $base;
 if (defined $ENV{'CONCERTO_INSTALL'}) {
-    $base = $env{'CONCERTO_INSTALL'};
+    $base = $ENV{'CONCERTO_INSTALL'};
 } else {
     $base = 'http://concerto.rpi.edu/';
 }
