@@ -4,4 +4,3 @@ staging_dir
 temp
 *.squashfs
 *.plugin
-public-key
