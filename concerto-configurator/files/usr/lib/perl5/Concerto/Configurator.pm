@@ -16,8 +16,15 @@ use Storable;
 
 our @ISA = qw/Exporter/;
 our @EXPORT = qw/configure poll_card_update/;
-#our $BASE_URL = "http://ds.rpitv.org/charliehorse/";
-our $BASE_URL = "http://signage.union.rpi.edu/hardware/";
+
+our $BASE_URL = "http://concerto.rpi.edu/hardware/";
+if (defined $ENV{'CONFIG_ROOT_URL'}) {
+    $BASE_URL = $ENV{'CONFIG_ROOT_URL'};
+}
+
+# add trailing slash if needed
+$BASE_URL =~ s|([^/])$|$1/|;
+
 our $CARD_BASE = "/initrd/mnt";
 
 sub get_summary {

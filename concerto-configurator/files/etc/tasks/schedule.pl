@@ -11,6 +11,12 @@ my $mac = find_mac('eth0');
 
 #system('stty -F /dev/ttyS0 9600');
 
+my $base_url = "http://signage.rpi.edu/";
+
+if (defined $ENV{'CONCERTO_INSTALL'}) {
+    $base_url = $ENV{'CONCERTO_INSTALL'};
+}
+
 while (1) {
     # generate random challenge string
     my $chal;
@@ -21,7 +27,8 @@ while (1) {
 
 
     # request data from server
-    my $data = LWP::Simple::get("http://signage.union.rpi.edu/admin/screens/powerstate?mac=$mac&challenge_string=$chal");
+    my $data = LWP::Simple::get("${base_url}admin/screens/powerstate?mac=$mac&challenge_string=$chal");
+
 
     my ($sig, $cmd) = split /\n/, $data;
     my $powerstate = 'unknown';
