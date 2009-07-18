@@ -9,6 +9,9 @@ use File::Basename;
 
 my $log_dest = "http://senatedev.rpisenate.com/failure.php";
 
+# load up some defaults
+do '/etc/defaults.pl';
+
 # attempt to load configuration file from CF card, if present
 do '/initrd/mnt/config.pl';
 
