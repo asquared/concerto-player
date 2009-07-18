@@ -10,6 +10,15 @@ use LWP::Simple( );
 system("/usr/bin/amixer sset Master 0dB");
 system('/bin/echo -e "VOLM30  \r" > /dev/ttyS0');
 
+my $BASE_URL = "http://senatedev.union.rpi.edu/andrew/hardware/";
+
+if (defined $ENV{'EMERG_AUDIO_BASE'}) {
+    $BASE_URL = $ENV{'EMERG_AUDIO_BASE'};
+}
+
+# append trailing slash if missing
+$BASE_URL =~ s|([^/])$|$1/|;
+
 while (1) {
     # generate random challenge string
     my $chal;
@@ -21,7 +30,7 @@ while (1) {
 
     #print "issuing HTTP request...\n";
     # request data from server
-    my $data = LWP::Simple::get("http://senatedev.union.rpi.edu/andrew/hardware/audio.php?challenge_string=$chal");
+    my $data = LWP::Simple::get("${BASE_URL}audio.php?challenge_string=$chal");
     #print "got back response: $data\n";
 
     my ($sig, $url) = split /\n/, $data;
