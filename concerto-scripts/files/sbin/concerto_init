@@ -9,6 +9,9 @@ use File::Basename;
 
 my $log_dest = "http://senatedev.rpisenate.com/failure.php";
 
+# attempt to load configuration file from CF card, if present
+do '/initrd/mnt/config.pl';
+
 # this will be coming in from the kernel command line
 if (defined $ENV{"LOG_DEST"}) {
     $log_dest = $ENV{"LOG_DEST"};
