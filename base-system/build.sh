@@ -6,6 +6,7 @@
 . ./config
 
 if [ "`whoami`" != "root" ]; then
+    export ORIG_USER="`whoami`"
     echo "Sudo-ing ourselves..."
     exec sudo $0 $@
 fi
@@ -35,3 +36,4 @@ $LINUX32 chroot staging_dir /finish_setup.sh
 rm staging_dir/finish_setup.sh
 
 mksquashfs staging_dir concerto.squashfs -all-root -noappend
+chown "$ORIG_USER" concerto.squashfs
