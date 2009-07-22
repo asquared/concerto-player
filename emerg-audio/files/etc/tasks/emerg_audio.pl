@@ -7,8 +7,9 @@ use Concerto::Signature qw/verify_sig/;
 use LWP::Simple( );
 
 # set volume levels
-system("/usr/bin/amixer sset Master 0dB");
-system('/bin/echo -e "VOLM30  \r" > /dev/ttyS0');
+if (-r '/etc/ems_volume.pl') {
+    do '/etc/ems_volume.pl';
+}
 
 my $BASE_URL = "http://senatedev.union.rpi.edu/andrew/hardware/";
 
@@ -18,6 +19,11 @@ if (defined $ENV{'EMERG_AUDIO_BASE'}) {
 
 # append trailing slash if missing
 $BASE_URL =~ s|([^/])$|$1/|;
+
+sub play_mp3 {
+    my $url = shift;
+    system("wget -O- $url | madplay -");
+}
 
 while (1) {
     # generate random challenge string
@@ -38,7 +44,7 @@ while (1) {
         if ($url ne 'none') {
             print "Playing emergency message: $url\n";
             # play the file
-            system("/usr/bin/mpg123 $url");
+            play_mp3("$url");
             sleep 3;
         } else {
             # wait 15 seconds before trying again
