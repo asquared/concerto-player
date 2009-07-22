@@ -12,7 +12,7 @@ fi
 
 mkdir -p staging_dir/opt
 
-../scripts/stage-packages.pl libgtk2.0-0 xfwm4
+../scripts/stage-packages.pl libgtk2.0-0 xfwm4 libasound2
 
 tar -jxvf temp/release.tar.bz2 -C staging_dir/opt
 tar -xvf fullfullscreen.tar -C staging_dir/opt/firefox/extensions
