@@ -11,7 +11,7 @@ if (-r '/etc/ems_volume.pl') {
     do '/etc/ems_volume.pl';
 }
 
-my $BASE_URL = "http://senatedev.union.rpi.edu/andrew/hardware/";
+my $BASE_URL = "http://signage.rpi.edu/hardware/";
 
 if (defined $ENV{'EMERG_AUDIO_BASE'}) {
     $BASE_URL = $ENV{'EMERG_AUDIO_BASE'};
