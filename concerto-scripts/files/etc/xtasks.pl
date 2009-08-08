@@ -15,7 +15,7 @@ if (defined $ENV{'CONCERTO_INSTALL'}) {
 
 # start X server and firefox
 
-my $MAC = find_mac("eth0");
+my $MAC = find_mac();
 
 # disable X11 screensaver
 system("/usr/bin/xset s off");

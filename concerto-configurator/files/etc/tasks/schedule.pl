@@ -7,7 +7,7 @@ use Concerto::Signature qw/verify_sig/;
 use Concerto::MACFinder qw/find_mac/;
 use LWP::Simple( );
 
-my $mac = find_mac('eth0');
+my $mac = find_mac();
 
 #system('stty -F /dev/ttyS0 9600');
 

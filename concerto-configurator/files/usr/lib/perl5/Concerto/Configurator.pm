@@ -194,7 +194,7 @@ EOF
 sub configure {
     my $summary;
     until (defined $summary) {
-        $summary = get_summary(find_mac("eth0"));
+        $summary = get_summary(find_mac());
     }
     
     find_configs($summary);
@@ -205,7 +205,7 @@ sub configure {
 
 sub poll_card_update {
     my $summary;
-    $summary = get_summary(find_mac("eth0"));
+    $summary = get_summary(find_mac());
     unless (defined $summary) {
         return;
     }
