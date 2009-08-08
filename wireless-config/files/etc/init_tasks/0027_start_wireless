@@ -1,0 +1,69 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use Concerto::InitScript;
+use Concerto::InterfaceFinder qw/choose_interface is_wireless/;
+
+my $iface = choose_interface( );
+unless (defined $iface) {
+    print "no interface???\n";
+    exit 0;
+}
+
+unless (is_wireless($iface)) {
+    print "no wireless?\n";
+    exit 0;
+}
+
+init_script("Configuring wireless network settings");
+
+# create a wpa_supplicant.conf
+open my $wpa_conf, ">", "/etc/wpa_supplicant.conf" or do {
+    log_and_splash("WARNING: Failed to create wpa_supplicant.conf: $!");
+    sleep 2;
+};
+
+my $ssid = $ENV{"WIRELESS_SSID"};
+my $key_mgmt = $ENV{"WIRELESS_ENCRYPTION"};
+my $psk = $ENV{"WIRELESS_PSK"};
+my $wep;
+if ($key_mgmt eq 'wep') {
+    $wep = 1;
+} else {
+    $wep = 0;
+}
+
+
+if (!$wep) {
+    print $wpa_conf "ctrl_interface=/var/run/wpa_supplicant\n";
+    print $wpa_conf "ctrl_interface_group=root\n";
+    print $wpa_conf "network={\n";
+    print $wpa_conf "    ssid=\"$ssid\"\n";
+    print $wpa_conf "    scan_ssid=1\n";
+    print $wpa_conf "    key_mgmt=$key_mgmt\n";
+    print $wpa_conf "    psk=\"$psk\"\n" if defined $psk;
+    print $wpa_conf "}\n";
+}
+
+# bring up wireless interface
+log_and_splash("Bringing up wireless interface");
+system("/sbin/ifconfig $iface up");
+
+if ($wep) {
+    log_and_splash("Setting WEP parameters");
+    system("/sbin/iwconfig $iface essid \"$ssid\" ap any key $psk");
+} else {
+    log_and_splash("Starting WPA daemon");
+    # start wpa_supplicant in background
+    system("/sbin/wpa_supplicant -B -i $iface -c /etc/wpa_supplicant.conf") 
+            == 0 or do {
+        log_and_splash("Failed to start wpa_supplicant on $iface");
+        sleep 2;
+    };
+}
+
+log_and_splash("Waiting for interface to associate with access point");
+sleep 10;
+
+exit 0;
+
