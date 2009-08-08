@@ -21,7 +21,8 @@ my $filesystem = "vfat";
 
 if (defined $ENV{"cdboot"}) {
     $filesystem = "iso9660";
-    @card_devs = qw|/dev/hda /dev/hdb /dev/hdc /dev/hdd|;
+    @card_devs = glob("/dev/scd*");
+    push @card_devs, qw|/dev/hda /dev/hdb /dev/hdc /dev/hdd|;
 }
 
 sub mount_card {
@@ -37,8 +38,13 @@ sub mount_card {
     for my $card (@card_devs) {
         print "trying to mount $card on $init_mount...\r";
         if (system("/bin/mount -t $filesystem -o sync,noatime $card $init_mount") == 0) {
-            print "\nsuccess!\n";
-            return 1;
+            if ( -r "$init_mount/concerto.boot" ) {
+                print "\nsuccess!\n";
+                return 1;
+            } else {
+                # probably was no good
+                system("/bin/umount $init_mount");   
+            }
          }  
     }
 
