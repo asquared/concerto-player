@@ -1,36 +1,42 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
+use Concerto::InitScript;
+use Concerto::SplashClient qw/update_splash_text/;
+use Concerto::InterfaceFinder qw/choose_interface/;
 
+init_script("Configuring network");
+
+my $iface = choose_interface( );
 my $MAX_DHCP_TRIES = 10;
-my $iface;
-my $ifconfig = `/sbin/ifconfig -a`;
-my @cards = ($ifconfig =~/^(eth\d+)/gm);
-if (scalar (@cards) > 0) {
-	$iface = $cards[0];
-	print "\nfound Ethernet at $iface...\n";
-} 
 
 # check if we actually found anything
 unless (defined $iface) {
     print "Failed to find any network interface!";
-    exit 1;
+    for (my $i = 30; $i >= 0; --$i) {
+        update_splash_text("Network card not found! Please install one. Rebooting in ${i}s.");
+        sleep 1;
+    }
+    exit 2;
 }
 
 # do DHCP autoconfiguration
 sleep(2);
 print "DHCP autoconfiguration via dhclient in progress...\n";
-
+update_splash_text("DHCP autoconfiguration via dhclient in progress...");
 # use as a crude watchdog to die (causing reboot) if too many attempts occur
 my $dhcpdog = 0;
 
 while (system("/sbin/dhclient -1 $iface")) {
     print "no network... try again in 10 seconds\n";
+    update_splash_text("DHCP timeout, retrying in 10 seconds."); 
+
     sleep 10;
     $dhcpdog++;
     if ($dhcpdog > $MAX_DHCP_TRIES) {
-        print "Too many DHCP tries.\n";
-        exit 1;
+        update_splash_text("DHCP failure. Restarting system.");
+        sleep 5;
+        exit 2;
     }
 }
 

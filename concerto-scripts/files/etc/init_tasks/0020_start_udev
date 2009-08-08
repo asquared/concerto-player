@@ -2,6 +2,9 @@
 
 use strict; 
 use warnings;
+use Concerto::InitScript;
+
+init_script("Detecting hardware and loading modules");
 
 if (system("/bin/mount -t sysfs sysfs /sys") == 0) {
     system("/sbin/udevd --daemon");

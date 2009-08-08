@@ -3,6 +3,10 @@
 use strict;
 use warnings;
 
+use Concerto::InitScript;
+
+init_script("Computing module dependencies...");
+
 if (system("depmod") == 0) {
     exit 0;
 } else {

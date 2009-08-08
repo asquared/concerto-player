@@ -3,6 +3,10 @@
 use strict;
 use warnings;
 
+use Concerto::InitScript;
+
+init_script("Mounting the proc filesystem");
+
 if (system("/bin/mount -t proc proc /proc") == 0) {
     exit 0;
 } else {
