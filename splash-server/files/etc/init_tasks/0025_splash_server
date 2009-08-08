@@ -1,0 +1,7 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+system("/usr/bin/splashserver &") unless defined $ENV{"NOSPLASH"};
+
