@@ -2,7 +2,6 @@
 use strict;
 use warnings;
 use Concerto::InitScript;
-use Concerto::SplashClient qw/update_splash_text/;
 use Concerto::InterfaceFinder qw/choose_interface/;
 
 init_script("Configuring network");
@@ -14,7 +13,7 @@ my $MAX_DHCP_TRIES = 10;
 unless (defined $iface) {
     print "Failed to find any network interface!";
     for (my $i = 30; $i >= 0; --$i) {
-        update_splash_text("Network card not found! Please install one. Rebooting in ${i}s.");
+        log_and_splash("Network card not found! Please install one. Rebooting in ${i}s.");
         sleep 1;
     }
     exit 2;
@@ -23,18 +22,18 @@ unless (defined $iface) {
 # do DHCP autoconfiguration
 sleep(2);
 print "DHCP autoconfiguration via dhclient in progress...\n";
-update_splash_text("DHCP autoconfiguration via dhclient in progress...");
+log_and_splash("DHCP autoconfiguration via dhclient in progress...");
 # use as a crude watchdog to die (causing reboot) if too many attempts occur
 my $dhcpdog = 0;
 
 while (system("/sbin/dhclient -1 $iface")) {
     print "no network... try again in 10 seconds\n";
-    update_splash_text("DHCP timeout, retrying in 10 seconds."); 
+    log_and_splash("DHCP timeout, retrying in 10 seconds."); 
 
     sleep 10;
     $dhcpdog++;
     if ($dhcpdog > $MAX_DHCP_TRIES) {
-        update_splash_text("DHCP failure. Restarting system.");
+        log_and_splash("DHCP failure. Restarting system.");
         sleep 5;
         exit 2;
     }
