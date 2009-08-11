@@ -19,25 +19,55 @@ unless (defined $iface) {
     exit 2;
 }
 
-# do DHCP autoconfiguration
-sleep(2);
-print "DHCP autoconfiguration via dhclient in progress...\n";
-log_and_splash("DHCP autoconfiguration via dhclient in progress...");
-# use as a crude watchdog to die (causing reboot) if too many attempts occur
-my $dhcpdog = 0;
+unless (defined $ENV{"STATIC_IP"}) {
+    # do DHCP autoconfiguration
+    sleep(2);
+    print "DHCP autoconfiguration via dhclient in progress...\n";
+    log_and_splash("DHCP autoconfiguration via dhclient in progress...");
+    # use as a crude watchdog to die (causing reboot) if too many attempts occur
+    my $dhcpdog = 0;
 
-while (system("/sbin/dhclient -1 $iface")) {
-    print "no network... try again in 10 seconds\n";
-    log_and_splash("DHCP timeout, retrying in 10 seconds."); 
+    while (system("/sbin/dhclient -1 $iface")) {
+        print "no network... try again in 10 seconds\n";
+        log_and_splash("DHCP timeout, retrying in 10 seconds."); 
 
-    sleep 10;
-    $dhcpdog++;
-    if ($dhcpdog > $MAX_DHCP_TRIES) {
-        log_and_splash("DHCP failure. Restarting system.");
-        sleep 5;
-        exit 2;
+        sleep 10;
+        $dhcpdog++;
+        if ($dhcpdog > $MAX_DHCP_TRIES) {
+            log_and_splash("DHCP failure. Restarting system.");
+            sleep 5;
+            exit 2;
+        }
     }
+} else {
+    my $ip = $ENV{"STATIC_IP"};
+    my $netmask = $ENV{"STATIC_NETMASK"};
+    my $gateway = $ENV{"STATIC_GATEWAY"};
+    my @dns_servers = split /,/, $ENV{"STATIC_DNS"};
+
+    log_and_splash("Configuring using static IP.");
+    sleep 1;
+    log_and_splash("IP: $ip");
+    sleep 1;
+    log_and_splash("Netmask: $netmask");
+    sleep 1;
+    system("/sbin/ifconfig $iface up");
+    system("/sbin/ifconfig $iface $ip netmask $netmask");
+    log_and_splash("Gateway: $gateway");
+    sleep 1;
+    system("/sbin/route add default gw $gateway");
+
+    open my $resolv_conf, ">", "/etc/resolv.conf" or die "Cannot write resolv.conf!";
+
+    for my $dns_server (@dns_servers) {
+        log_and_splash("DNS: $dns_server");
+        print $resolv_conf "nameserver $dns_server\n";
+        sleep 1;
+    }
+
+    close $resolv_conf;
 }
+
 
 exit 0;
 
