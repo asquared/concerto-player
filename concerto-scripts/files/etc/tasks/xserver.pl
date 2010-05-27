@@ -7,6 +7,10 @@ use POSIX;
 
 POSIX::setsid( );
 
+# start up dbus daemon and HAL
+system("/bin/dbus-daemon --system");
+
+
 
 $ENV{"DISPLAY"} = ":0";
 $ENV{"HOME"} = "/root";

@@ -15,7 +15,8 @@ cp ../base-system/concerto.squashfs staging_dir/
 # copy plugins
 for plugin in \
     blank-cursor-theme concerto-scripts \
-    firefox-3.5 ntpdate unionfs-workaround root-shell
+    firefox-3.5 ntpdate unionfs-workaround root-shell \
+    splash-server wireless-config root-passwd-config
 do
     cp ../$plugin/*.plugin staging_dir/
 done

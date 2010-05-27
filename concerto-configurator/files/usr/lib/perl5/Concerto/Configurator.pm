@@ -150,7 +150,7 @@ EOF
         }
 
         # if they are different then load the new file
-        print "retreiving $url to download.tmp...";
+        print "retrieving $url to download.tmp...";
         unless (getstore_progress($url, "$CARD_BASE/download.tmp") == 200) {
             next; # failure to get the file
         }

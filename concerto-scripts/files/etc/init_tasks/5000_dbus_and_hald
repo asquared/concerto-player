@@ -1,0 +1,6 @@
+#!/bin/sh
+
+rm -f /var/run/dbus/*
+/bin/dbus-daemon --system
+/usr/sbin/hald --daemon=yes
+
